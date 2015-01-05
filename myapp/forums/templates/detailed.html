@@ -1,0 +1,165 @@
+{% load forum_tags %}
+{% load crispy_forms_tags %}
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<title>Pregunta detallada</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<link href="{% static "css/bootstrap.css" %}" rel="stylesheet">
+	<link href='http://fonts.googleapis.com/css?family=Nunito:400,700' rel='stylesheet' type='text/css'>
+	<link href='http://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+	<link href="{% static "css/estiloforo.css" %}" rel="stylesheet">
+</head>
+<body>
+<div class="container-fluid">
+	<section id="category-index" class="container-fluid">
+		<div class="row">
+		<h2> {{ question.title }}</h2>
+		<hr>
+			<div class="col-xs-12 col-sm-2 col-md-1">
+			{% if question|is_user_scored:user %}
+                <div class="btn-group-vertical mb10">
+                    <a class="btn btn-default" href="#">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                    </a>
+                    <a class="btn btn-default" href='/quitar_pregunta/{{question.id}}/'>
+                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+                    </a>
+                </div>
+            {% else %}
+				<div class="btn-group-vertical mb10">
+                    <a class="btn btn-default" href='/puntuar_pregunta/{{question.id}}/'>
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                    </a>
+                    <a class="btn btn-default" href="#">
+                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+                    </a>
+                </div>
+            {% endif %}
+                <span class="points-number">{{ question.get_points }}</span>
+            </div>
+			<div  class="col-xs-12 col-sm-10 col-md-11 question">
+				{{ question.question }}
+				<div class="container-fluid add-comment">
+					<div class="row">
+						<div class="col-xs-12 col-sm-6 col-md-3 no-padding-left move-right">
+							<img src="{% static "images/robert-300-2.jpg" %}" alt="" class="img-circle img-responsive" width="53px">
+							<span class="date"> {{ question.pub_date|date:"SHORT_DATE_FORMAT" }}</span> <br>
+							<strong class="user-name">{{ question.user.username }}</strong>
+						</div>
+						<div class="col-xs-12 col-sm-6 col-md-4 no-padding-left move-left">
+							<div class="text-left">
+							<a href="#" class="btn btn-danger add-question" data-toggle="modal" data-target="#myModal">Add a Comment</a>
+							</div>
+						</div>
+						<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+	        <h4 class="modal-title" id="myModalLabel">Add Answer</h4>
+	      </div>
+	      <div class="modal-body">
+			<div class="alert alert-danger" role="alert" style="display:none"></div>
+	       <form method="post" action="" id="question-form">
+	        {% csrf_token %}
+			
+			{{ form|crispy}}
+			
+
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	        <input type="submit" class="btn btn-primary" value="Save changes">
+	      </div>
+	    </div>
+	  </div>
+	
+</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<h3> Answer</h3>
+		<hr>
+		{% for answer in answers %}
+		<div class="row border-bottom">
+			<div class="col-xs-12 col-sm-2 col-md-1">
+			{% if answer|is_user_scored_answer:user %}
+                <div class="btn-group-vertical">
+                    <a class="btn btn-default" href="#">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                    </a>
+                    <a class="btn btn-default" href='/quitar_answer/{{answer.id}}/'>
+                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+                    </a>
+                </div>
+            {% else %}
+                <div class="btn-group-vertical">
+                    <a class="btn btn-default" href='/puntuar_answer/{{answer.id}}/'>
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                    </a>
+                    <a class="btn btn-default" href="#">
+                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+                    </a>
+                </div>
+            {% endif %}
+                <span class="points-number">{{ answer.get_point_answer }}</span>
+            </div>
+			<div  class="col-xs-12 col-sm-10 col-md-11 answer">
+				{{ answer.answer }}
+				<div class="container-fluid add-comment">
+					<div class="row">
+						<div class="col-xs-6 col-sm-6 col-md-3 no-padding-left move-right">
+							<img src="{% static "images/robert-300-2.jpg" %}" alt="" class="img-circle img-responsive" width="53px">
+							<span class="date"> {{ answer.pub_date|date:"SHORT_DATE_FORMAT" }}</span> <br>
+							<strong class="user-name">{{ answer.user.username }}</strong>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% empty %}
+			<p>No hay respuestas</p>
+	{% endfor %}
+	</section>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="{% static "js/bootstrap.js" %}"></script>
+<script>
+    	$('#question-form').on('submit', function(ev){
+    		ev.preventDefault();
+    		$.ajax({
+    			url: $('#question-form').attr('action'),
+    			type: 'POST',
+    			data: $('#question-form').serialize(),
+    			dataType: 'json',
+    			success: function(response_data){
+    				if(response_data.form_saved){
+    					$('#myModal').modal('hide');
+    				}else{
+    					//$('.bg-danger').append("No valido")
+    					console.log(response_data.errors);
+    					 var form_errors = response_data.errors;
+    					 errores = '';
+    					// Display form validation errors
+			            for(var fieldname in form_errors) {
+
+			                //var errors = form_errors[fieldname];       // Array of error strings for fieldname
+			                //console.log(fieldname)
+			                errores = errores + "<strong>Campo requerido:</strong> "+fieldname+'<br>';
+			            }
+			            $(".alert").show();
+			            $('.alert').html(errores);
+
+    				}
+    			}
+    		});
+    	});
+</script>
+</body>
+</html>

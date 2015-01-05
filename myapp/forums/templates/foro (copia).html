@@ -1,0 +1,95 @@
+{% load forum_tags %}{% load crispy_forms_tags %}
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<title>Este es un pequeño prueba</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<link href="{% static "css/bootstrap.css" %}" rel="stylesheet">
+</head>
+<body>
+	<div class="container">
+	<p>Soy el usuario {{ user.get_username }}</p>
+
+
+
+<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+  Añadir una pregunta
+</button>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+	        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+	      </div>
+	      <div class="modal-body">
+			<div class="alert alert-danger" role="alert" style="display:none"></div>
+	       <form method="post" action="" id="question-form">
+	        {% csrf_token %}
+			
+			{{ form|crispy}}
+			
+
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	        <input type="submit" class="btn btn-primary" value="Save changes">
+	      </div>
+	    </div>
+	  </div>
+	
+</div>
+	{% for question in questions %}
+		<p>Question: <a href="/pregunta/{{question.id}}/">{{ question.question }}</a></p>
+		<p>User: {{ question.user.username }}</p>
+		<p>Point: {{ question.get_points }} 
+		{% if question|is_user_scored:user %}
+			<a href='/quitar_pregunta/{{question.id}}/'>restar</a>
+		{% else %}
+			<a href='/puntuar_pregunta/{{question.id}}/'>sumar</a> 
+		{% endif %}
+
+		</p>
+		<hr/>
+	{% endfor %}
+	</div>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="{% static "js/bootstrap.js" %}"></script>
+    <script>
+    	$('#question-form').on('submit', function(ev){
+    		ev.preventDefault();
+    		$.ajax({
+    			url: $('#question-form').attr('action'),
+    			type: 'POST',
+    			data: $('#question-form').serialize(),
+    			dataType: 'json',
+    			success: function(response_data){
+    				if(response_data.form_saved){
+    					$('#myModal').modal('hide');
+    				}else{
+    					//$('.bg-danger').append("No valido")
+    					console.log(response_data.errors);
+    					 var form_errors = response_data.errors;
+    					 errores = '';
+    					// Display form validation errors
+			            for(var fieldname in form_errors) {
+
+			                //var errors = form_errors[fieldname];       // Array of error strings for fieldname
+			                //console.log(fieldname)
+			                errores = errores + "<strong>Campo requerido:</strong> "+fieldname+'<br>';
+			            }
+			            $(".alert").show();
+			            $('.alert').html(errores);
+
+    				}
+    			}
+    		});
+    	});
+
+    </script>
+</body>
+</html>

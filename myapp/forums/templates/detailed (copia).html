@@ -1,0 +1,36 @@
+{% load prueba_tags %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<title>Pregunta detallada</title>
+</head>
+<body>
+	<div style="background:#008fd5">
+		<p>User: {{ question.user.username }}</p>
+		<p>Question: {{ question.question }}</p>
+		<p>Date: {{ question.pub_date|date:"SHORT_DATE_FORMAT" }}</p>
+		<p>Point: {{ question.get_points }} 
+		{% if question|is_user_scored:user %}
+			<a href='/quitar_pregunta/{{question.id}}/'>restar</a>
+		{% else %}
+			<a href='/puntuar_pregunta/{{question.id}}/'>sumar</a> 
+		{% endif %}
+		</p>
+		<p><a href="/add_answer/{{question.id}}/">Responder</a></p>
+	</div>
+	{% for answer in answers %}
+		<p>Respuesta: {{ answer.answer }}</p>
+		<p>Point: {{ answer.get_point_answer }}
+		{% if answer|is_user_scored_answer:user %}
+			<a href='/quitar_answer/{{answer.id}}/'>restar</a>
+		{% else %}
+			<a href='/puntuar_answer/{{answer.id}}/'>sumar</a> 
+		{% endif %}
+		</p>
+		<hr>
+	{% empty %}
+		<p>No hay respuestas</p>
+	{% endfor %}
+</body>
+</html>
